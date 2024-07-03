@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/batch
+           http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+    <!-- PostgreSQL DataSource -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql://localhost:5432/rmDB"/>
+        <property name="username" value="postgres"/>
+        <property name="password" value="sudoer"/>
+    </bean>
+
+    <!-- Spring Batch Infrastructure Beans -->
+    <bean id="jobRepository" class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="databaseType" value="POSTGRES"/>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <property name="jobRepository" ref="jobRepository"/>
+    </bean>
+
+    <!-- Job Configuration -->
+    <bean id="itemReader" class="org.springframework.batch.item.database.JdbcCursorItemReader">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="sql" value="SELECT * FROM PersonTest"/>
+        <property name="rowMapper" ref="personRowMapper" />
+    </bean>
+
+    <bean id="personRowMapper" class="org.springframework.jdbc.core.BeanPropertyRowMapper">
+        <property name="mappedClass" value="dto.Person"/>
+    </bean>
+
+    <bean id="itemProcessor" class="processor.PersonProcessor"/>
+
+    <bean id="itemWriter" class="writer.PersonExcelWriter"/>
+
+    <bean id="step1" class="org.springframework.batch.core.step.item.SimpleStepFactoryBean">
+        <property name="jobRepository" ref="jobRepository"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="itemReader" ref="itemReader"/>
+        <property name="itemProcessor" ref="itemProcessor"/>
+        <property name="itemWriter" ref="itemWriter"/>
+        <property name="commitInterval" value="10"/>
+    </bean>
+
+    <bean id="personJob" class="org.springframework.batch.core.job.SimpleJobFactoryBean">
+        <property name="jobRepository" ref="jobRepository"/>
+        <property name="steps">
+            <list>
+                <ref bean="step1"/>
+            </list>
+        </property>
+    </bean>
+
+</beans>
