@@ -1,4 +1,4 @@
-package com.example.batch;
+package dto;
 
 public class Person {
     private Long id;

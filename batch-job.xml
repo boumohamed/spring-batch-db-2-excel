@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/batch
+           http://www.springframework.org/schema/batch/spring-batch.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="classpath:application.properties"/>
+
+    <!-- DataSource Configuration -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${spring.datasource.driver-class-name}" />
+        <property name="url" value="${spring.datasource.url}" />
+        <property name="username" value="${spring.datasource.username}" />
+        <property name="password" value="${spring.datasource.password}" />
+    </bean>
+
+    <!-- Job Configuration -->
+    <batch:job id="exportPersonJob">
+        <batch:step id="step1">
+            <batch:tasklet>
+                <batch:chunk reader="databaseReader" processor="processor" writer="excelWriter" commit-interval="100" />
+            </batch:tasklet>
+        </batch:step>
+    </batch:job>
+
+    <!-- ItemReader Configuration -->
+    <bean id="databaseReader" class="org.springframework.batch.item.database.JdbcCursorItemReader">
+        <property name="dataSource" ref="dataSource" />
+        <property name="sql" value="SELECT id, first_name, last_name, email FROM people" />
+        <property name="rowMapper">
+            <bean class="org.springframework.jdbc.core.BeanPropertyRowMapper">
+                <property name="mappedClass" value="com.example.batch.Person" />
+            </bean>
+        </property>
+    </bean>
+
+    <!-- ItemProcessor Configuration -->
+    <bean id="processor" class="org.springframework.batch.item.support.PassThroughItemProcessor" />
+
+    <!-- ItemWriter Configuration -->
+    <bean id="excelWriter" class="org.springframework.batch.item.excel.poi.PoiItemWriter">
+        <property name="resource" value="file:output.xlsx" />
+        <property name="headerCallback">
+            <bean class="org.springframework.batch.item.excel.support.rowset.DefaultRowSetFactory">
+                <property name="createHeader" value="true" />
+            </bean>
+        </property>
+        <property name="rowMapper">
+            <bean class="org.springframework.batch.item.excel.RowMapper">
+                <property name="targetType" value="com.example.batch.Person" />
+                <property name="names" value="id, firstName, lastName, email" />
+            </bean>
+        </property>
+    </bean>
+
+</beans>
