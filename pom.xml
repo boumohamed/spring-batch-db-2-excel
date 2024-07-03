@@ -67,20 +67,75 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/assembly/dep.xml</descriptor>
-                    </descriptors>
-                </configuration>
+                <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>create-archive</id>
+                        <id>create-sh</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <echo message="#!/bin/bash" file="${project.build.directory}/run.sh"/>
+                                <echo message="java -jar ${project.build.finalName}.jar" append="true" file="${project.build.directory}/run.sh"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-sh</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <echo message="#!/bin/bash" file="${project.build.directory}/bin/run.sh"/>
+                                <echo message="java -jar ${project.build.finalName}.jar" append="true" file="${project.build.directory}/run.sh"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-bat</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <echo message="@echo off" file="${project.build.directory}/bin/run.bat"/>
+                                <echo message="java -jar ${project.build.finalName}.jar" append="true" file="${project.build.directory}/run.bat"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/dep.xml</descriptor>
+                            </descriptors>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
