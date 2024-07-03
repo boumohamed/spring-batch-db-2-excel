@@ -36,7 +36,7 @@
     <!-- Job Configuration -->
     <bean id="itemReader" class="org.springframework.batch.item.database.JdbcCursorItemReader">
         <property name="dataSource" ref="dataSource"/>
-        <property name="sql" value="SELECT * FROM PersonTest"/>
+        <property name="sql" value="SELECT * FROM PersonTest where id=1"/>
         <property name="rowMapper" ref="personRowMapper" />
     </bean>
 
@@ -48,13 +48,14 @@
 
     <bean id="itemWriter" class="writer.PersonExcelWriter"/>
 
-    <bean id="step1" class="org.springframework.batch.core.step.factory.SimpleStepFactoryBean">
+    <bean id="step1" class="org.springframework.batch.core.step.factory.SimpleStepFactoryBean" >
         <property name="jobRepository" ref="jobRepository"/>
         <property name="transactionManager" ref="transactionManager"/>
         <property name="itemReader" ref="itemReader"/>
         <property name="itemProcessor" ref="itemProcessor"/>
         <property name="itemWriter" ref="itemWriter"/>
         <property name="commitInterval" value="10"/>
+        <property name="allowStartIfComplete" value="true" />
     </bean>
 
     <bean id="personJob" class="org.springframework.batch.core.job.SimpleJob">
